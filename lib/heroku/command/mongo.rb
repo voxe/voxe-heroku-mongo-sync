@@ -9,14 +9,14 @@ module Heroku::Command
     end
 
     def push
-      display "THIS WILL REPLACE ALL DATA for #{app} ON #{heroku_mongo_uri.host} WITH #{local_mongo_uri.host}"
+      display "THIS WILL REPLACE ALL DATA FROM #{local_mongo_uri.host} TO #{heroku_mongo_uri.host}"
       display "Are you sure? (y/n) ", false
       return unless ask.downcase == 'y'
       transfer(local_mongo_uri, heroku_mongo_uri)
     end
 
     def pull
-      display "Replacing the #{app} db at #{local_mongo_uri.host} with #{heroku_mongo_uri.host}"
+      display "Replacing the local voxe-db at #{local_mongo_uri.host} with #{heroku_mongo_uri.host}"
       transfer(heroku_mongo_uri, local_mongo_uri)
     end
 
@@ -26,7 +26,7 @@ module Heroku::Command
         dest   = make_connection(to)
 
         origin.collections.each do |col|
-          next if col.name =~ /^system\./
+          next if col.name =~ /^system\./ || col.name == "events"
 
           display "Syncing #{col.name} (#{col.size})...", false
           dest.drop_collection(col.name)
@@ -57,7 +57,7 @@ module Heroku::Command
       end
 
       def local_mongo_uri
-        url = ENV['MONGO_URL'] || "mongodb://localhost:27017/#{app}"
+        url = ENV['MONGO_URL'] || "mongodb://localhost:27017/voxe"
         make_uri(url)
       end
 
